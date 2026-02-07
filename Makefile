@@ -1,4 +1,9 @@
-.PHONY: bench_serving benchmark_prefix_caching
+.PHONY: bench_serving bench_serving_docker benchmark_prefix_caching
+
+# Load OPENAI_API_KEY and other variables if present
+-include backend/.env
+
+export OPENAI_API_KEY
 
 PYTHON ?= python3
 BASE_URL ?= http://10.255.255.254:8000 # Replace with the actual IP address and port of your vLLM server
@@ -19,8 +24,21 @@ bench_serving:
 		--max-concurrency 5 \
 		--result-dir ./benchmarks/results --save-result --save-detailed
 
+bench_serving_docker:
+	docker exec -e OPENAI_API_KEY="$(OPENAI_API_KEY)" vllm python3 /app/benchmarks/benchmark_serving.py \
+		--backend openai-chat \
+		--base-url http://localhost:8000 \
+		--model $(MODEL) \
+		--tokenizer $(MODEL) \
+		--endpoint /v1/chat/completions \
+		--dataset-name sharegpt \
+		--dataset-path /app/benchmarks/ShareGPT_V3_unfiltered_cleaned_split.json \
+		--request-rate 10.0 \
+		--max-concurrency 5 \
+		--result-dir /app/benchmarks/results --save-result --save-detailed
+
 benchmark_prefix_caching:
-	docker exec vllm python3 /app/benchmarks/benchmark_prefix_caching.py \
+	docker exec -e OPENAI_API_KEY="$(OPENAI_API_KEY)" vllm python3 /app/benchmarks/benchmark_prefix_caching.py \
 		--model $(MODEL) \
 		--tokenizer $(MODEL) \
 		--dataset-path /app/benchmarks/ShareGPT_V3_unfiltered_cleaned_split.json \
