@@ -1,8 +1,18 @@
 #!/bin/bash
 
-# Preload/validate paths
-MED_QA_LORA_DIR="/root/.cache/huggingface/hub/models--thuanan--med-mcqa-llama-3.2-1B-Instruct-4bit-lora/snapshots/f211dff2cd67765206902672f51fb683854801e8"
-VSF_LORA_DIR="/root/.cache/huggingface/hub/models--thuanan--Llama-3.2-1B-Instruct-lora-vsf/snapshots/a4ecdb44c2d665ad5a2cfcbc6f005f3e2e3646cc"
+# Resolve latest snapshot paths dynamically
+MED_QA_LORA_DIR=$(ls -d /root/.cache/huggingface/hub/models--thuanan--med-mcqa-llama-3.2-1B-Instruct-4bit-lora/snapshots/* 2>/dev/null | head -n 1)
+VSF_LORA_DIR=$(ls -d /root/.cache/huggingface/hub/models--thuanan--Llama-3.2-1B-Instruct-lora-vsf/snapshots/* 2>/dev/null | head -n 1)
+
+if [ -z "$MED_QA_LORA_DIR" ]; then
+    echo "MedQA LoRA snapshot not found. Download it first."
+    exit 1
+fi
+
+if [ -z "$VSF_LORA_DIR" ]; then
+    echo "VSF LoRA snapshot not found. Download it first."
+    exit 1
+fi
 
 # Curl command to load lora adaptors
 curl -X POST "http://localhost:8000/v1/load_lora_adapter" \

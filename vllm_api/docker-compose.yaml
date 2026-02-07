@@ -8,10 +8,12 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ~/.cache/huggingface:/root/.cache/huggingface
-      - ~/.cache/vllm:/root/.cache/vllm
+      - huggingface_cache:/root/.cache/huggingface
+      - vllm_cache:/root/.cache/vllm
       - ./entrypoint.sh:/app/entrypoint.sh
       - ./adapters.sh:/app/adapters.sh
+      - ./download_adapters.py:/app/download_adapters.py
+      - ../benchmarks:/app/benchmarks
     networks:
       - aio-network
     logging:
@@ -22,7 +24,11 @@ services:
       resources:
         reservations:
           devices:
-            - capabilities: [gpu] 
+            - capabilities: [gpu]
+
+volumes:
+  huggingface_cache:
+  vllm_cache:
 
 networks:
   aio-network:

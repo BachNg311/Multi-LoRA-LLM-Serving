@@ -1,6 +1,12 @@
+import os
+from pathlib import Path
 from dotenv import load_dotenv
 from langsmith import Client
-load_dotenv()
+
+# Load environment variables from the backend/.env file
+BASE_DIR = Path(__file__).resolve().parents[1]
+# print(BASE_DIR)
+load_dotenv(BASE_DIR / ".env")
 
 client = Client()
 
@@ -57,8 +63,11 @@ def concision(outputs: dict, reference_outputs: dict) -> bool:
 
 def my_app(text: str) -> str:
     import requests
-    url = f"http://0.0.0.0:8001/v1/sentiment"
-    headers = {"Authorization": f"Bearer aio2025", "Content-Type": "application/json"}
+    url = f"http://localhost:8001/v1/sentiment"
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not set in backend/.env")
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {"text": text} 
     response = requests.post(url, headers=headers, json=payload)
     return response.json()["content"]

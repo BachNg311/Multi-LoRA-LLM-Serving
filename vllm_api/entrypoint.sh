@@ -13,12 +13,12 @@ echo "Using Python executable: $PYTHON_CMD"
 # Start vllm in the background
 $PYTHON_CMD -m vllm.entrypoints.openai.api_server \
   --model thuanan/Llama-3.2-1B-Instruct-Chat-sft \
-  --compilation-config {"cache_dir": "../cache"} \
+  --compilation-config '{"cache_dir":"../cache"}' \
   --port 8000 \
   --quantization bitsandbytes \
   --enable-prefix-caching \
-  --swap-space 16 \
-  --gpu-memory-utilization 0.9 \
+  --swap-space 4 \
+  --gpu-memory-utilization 0.7 \
   --disable-log-requests \
   --enable-sleep-mode \
   --max-model-len 8192 \
@@ -40,10 +40,14 @@ wait_for_api() {
 # Wait for the API to be ready
 wait_for_api
 
+# Download adapters inside the container to ensure they exist
+echo "Ensuring adapters are downloaded..."
+$PYTHON_CMD /app/download_adapters.py
+
 # Run the script to load lora adapters
 echo "Loading LoRA adapters..."
 export VLLM_API_KEY=$VLLM_API_KEY
-# bash /app/adapters.sh
+bash /app/adapters.sh || echo "Failed to load adapters"
 
 # Wait for the vllm process
 wait $VLLM_PID
