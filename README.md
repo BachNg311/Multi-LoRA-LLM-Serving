@@ -74,4 +74,5 @@ This project demonstrates an end-to-end LLM deployment with a focus on:
 ```bash
 export OPENAI_API_KEY=<your vllm api key>
 make bench_serving
+make benchmark_prefix_caching
 ```

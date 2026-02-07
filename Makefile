@@ -1,8 +1,10 @@
 .PHONY: bench_serving benchmark_prefix_caching
 
 PYTHON ?= python3
-BASE_URL ?= http://127.0.0.1:8000
+BASE_URL ?= http://10.255.255.254:8000 # Replace with the actual IP address and port of your vLLM server
 MODEL ?= thuanan/Llama-3.2-1B-Instruct-Chat-sft
+GPU_MEMORY_UTILIZATION ?= 0.5
+MAX_MODEL_LEN ?= 8192
 
 bench_serving:
 	$(PYTHON) benchmarks/benchmark_serving.py \
@@ -23,6 +25,8 @@ benchmark_prefix_caching:
 		--tokenizer $(MODEL) \
 		--dataset-path /app/benchmarks/ShareGPT_V3_unfiltered_cleaned_split.json \
 		--enable-prefix-caching \
+		--gpu-memory-utilization $(GPU_MEMORY_UTILIZATION) \
+		--max-model-len $(MAX_MODEL_LEN) \
 		--num-prompts 20 \
 		--repeat-count 5 \
 		--input-length-range 128:256

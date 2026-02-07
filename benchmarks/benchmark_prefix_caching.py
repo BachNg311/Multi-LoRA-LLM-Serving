@@ -51,13 +51,13 @@ except ImportError:
 PROMPT = "You are a helpful assistant in recognizes the content of tables in markdown format. Here is a table as fellows. You need to answer my question about the table.\n# Table\n|Opening|Opening|Sl. No.|Film|Cast|Director|Music Director|Notes|\n|----|----|----|----|----|----|----|----|\n|J A N|9|1|Agni Pushpam|Jayabharathi, Kamalahasan|Jeassy|M. K. Arjunan||\n|J A N|16|2|Priyamvada|Mohan Sharma, Lakshmi, KPAC Lalitha|K. S. Sethumadhavan|V. Dakshinamoorthy||\n|J A N|23|3|Yakshagaanam|Madhu, Sheela|Sheela|M. S. Viswanathan||\n|J A N|30|4|Paalkkadal|Sheela, Sharada|T. K. Prasad|A. T. Ummer||\n|F E B|5|5|Amma|Madhu, Srividya|M. Krishnan Nair|M. K. Arjunan||\n|F E B|13|6|Appooppan|Thikkurissi Sukumaran Nair, Kamal Haasan|P. Bhaskaran|M. S. Baburaj||\n|F E B|20|7|Srishti|Chowalloor Krishnankutty, Ravi Alummoodu|K. T. Muhammad|M. S. Baburaj||\n|F E B|20|8|Vanadevatha|Prem Nazir, Madhubala|Yusufali Kechery|G. Devarajan||\n|F E B|27|9|Samasya|Madhu, Kamalahaasan|K. Thankappan|Shyam||\n|F E B|27|10|Yudhabhoomi|K. P. Ummer, Vidhubala|Crossbelt Mani|R. K. Shekhar||\n|M A R|5|11|Seemantha Puthran|Prem Nazir, Jayabharathi|A. B. Raj|M. K. Arjunan||\n|M A R|12|12|Swapnadanam|Rani Chandra, Dr. Mohandas|K. G. George|Bhaskar Chandavarkar||\n|M A R|19|13|Thulavarsham|Prem Nazir, sreedevi, Sudheer|N. Sankaran Nair|V. Dakshinamoorthy||\n|M A R|20|14|Aruthu|Kaviyoor Ponnamma, Kamalahasan|Ravi|G. Devarajan||\n|M A R|26|15|Swimming Pool|Kamal Haasan, M. G. Soman|J. Sasikumar|M. K. Arjunan||\n\n# Question\nWhat' s the content in the (1,1) cells\n"  # noqa: E501
 
 
-def test_prefix(llm=None, sampling_params=None, prompts=None):
+def test_prefix(llm=None, sampling_params=None, prompts=None) -> float:
     start_time = time.time()
-
     llm.generate(prompts, sampling_params=sampling_params)
-
     end_time = time.time()
-    print(f"cost time {end_time - start_time}")
+    elapsed = end_time - start_time
+    print(f"cost time {elapsed}")
+    return elapsed
 
 
 @dataclasses.dataclass
@@ -159,6 +159,17 @@ def repeat_and_sort_requests(requests: list[Request],
     return [req.prompt for req in repeated_requests]
 
 
+def _run_once(args, prompts, sampling_params, enable_prefix_caching: bool) -> float:
+    args.enable_prefix_caching = enable_prefix_caching
+    engine_args = EngineArgs.from_cli_args(args)
+    llm = LLM(**dataclasses.asdict(engine_args))
+    return test_prefix(
+        llm=llm,
+        prompts=prompts,
+        sampling_params=sampling_params,
+    )
+
+
 def main(args):
     tokenizer = get_tokenizer(args.model, trust_remote_code=True)
     input_length_range = tuple(map(int, args.input_length_range.split(':')))
@@ -194,10 +205,6 @@ def main(args):
     print(f"Min Prompt Length: {min(prompt_lens)}")
     print(f"Max Prompt Length: {max(prompt_lens)}")
 
-    engine_args = EngineArgs.from_cli_args(args)
-
-    llm = LLM(**dataclasses.asdict(engine_args))
-
     sampling_params = SamplingParams(temperature=0,
                                      max_tokens=args.output_len,
                                      detokenize=not args.disable_detokenize)
@@ -207,12 +214,15 @@ def main(args):
                                        repeat_count=args.repeat_count,
                                        sort=args.sort)
 
-    print("------start generating------")
-    test_prefix(
-        llm=llm,
-        prompts=prompts,
-        sampling_params=sampling_params,
-    )
+    print("------start generating (prefix caching enabled)------")
+    enabled_time = _run_once(args, prompts, sampling_params, True)
+
+    print("------start generating (prefix caching disabled)------")
+    disabled_time = _run_once(args, prompts, sampling_params, False)
+
+    if disabled_time > 0:
+        speedup = disabled_time / enabled_time if enabled_time > 0 else float("inf")
+        print(f"speedup (disabled/enable): {speedup:.2f}x")
 
 
 if __name__ == "__main__":
