@@ -69,6 +69,13 @@ This project demonstrates an end-to-end LLM deployment with a focus on:
 - **Grafana**: `http://localhost:3000`
 - **Prometheus**: `http://localhost:9090`
 
+## Deployment
+- Provision a G2 VM on Google Compute Engine (enable GPUs, pick region/zone with capacity, and choose a suitable NVIDIA GPU).
+- Ensure the host has a public IP and ports 8000, 8001, 7861, 8080, 3000, 9090 are allowed by your firewall.
+- Create a DuckDNS subdomain and map it to your server IP (example: `lora-llm-serving.duckdns.org`).
+- Update the DuckDNS record whenever your public IP changes (use the DuckDNS client or a cron job).
+- Access the stack via DNS, for example: `http://lora-llm-serving.duckdns.org:7861` for the Gradio UI.
+
 ## Benchmark
 
 ```bash
