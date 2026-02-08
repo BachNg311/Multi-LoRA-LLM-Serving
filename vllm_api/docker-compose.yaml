@@ -1,8 +1,12 @@
 services:
   vllm:
-    image: vllm/vllm-openai:latest
+    image: vllm/vllm-openai:v0.15.0
     container_name: vllm
     entrypoint: ["/bin/bash", "/app/entrypoint.sh"]
+    # runtime: nvidia
+    # environment:
+    #   - NVIDIA_VISIBLE_DEVICES=all
+    #   - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     env_file:
       - .env
     ports:
