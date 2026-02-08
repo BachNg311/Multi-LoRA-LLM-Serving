@@ -74,8 +74,8 @@ This project demonstrates an end-to-end LLM deployment with a focus on:
 DuckDNS allows only one subdomain. Use a single domain with path-based routing:
 
 - **Backend API**: `https://lora-llm-serving.duckdns.org/api/v1`
-- **Gradio UI**: `https://lora-llm-serving.duckdns.org/app`
-- **Open WebUI**: `https://lora-llm-serving.duckdns.org/webui`
+- **Gradio UI**: `https://lora-llm-serving.duckdns.org/app/`
+- **Open WebUI**: `https://lora-llm-serving.duckdns.org/webui/`
 
 Steps:
 
