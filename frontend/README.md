@@ -31,6 +31,7 @@ Configure the service with:
 - `OPENAI_API_BASE_URL`: URL of the OpenAPI service (vLLM)
 - `BACKEND_API_URL`: URL of the backend API service
 - `OPENAI_API_KEY`: API key for authorization
+- `GRADIO_ROOT_PATH`: Optional subpath when running behind a reverse proxy (example: `/app`)
 
 ## Running the Service
 

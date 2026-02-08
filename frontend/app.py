@@ -10,6 +10,7 @@ load_dotenv()
 # Configure API settings
 API_BASE_URL = os.getenv("BACKEND_API_URL", None)
 API_KEY = os.getenv("OPENAI_API_KEY", None)
+GRADIO_ROOT_PATH = os.getenv("GRADIO_ROOT_PATH", "").strip()
 
 if API_BASE_URL is None or API_KEY is None:
     raise ValueError("API_BASE_URL and API_KEY must be set in the environment variables.")
@@ -175,4 +176,10 @@ demo = gr.TabbedInterface(
 )
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    launch_kwargs = {
+        "server_name": "0.0.0.0",
+        "server_port": 7860,
+    }
+    if GRADIO_ROOT_PATH:
+        launch_kwargs["root_path"] = GRADIO_ROOT_PATH
+    demo.launch(**launch_kwargs)

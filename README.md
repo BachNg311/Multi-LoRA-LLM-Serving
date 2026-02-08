@@ -60,7 +60,7 @@ This project demonstrates an end-to-end LLM deployment with a focus on:
    docker compose up -d
    ```
 
-## Accessing Services
+## Accessing Services (Local)
 
 - **vLLM API**: `http://localhost:8000`
 - **Backend API**: `http://localhost:8001`
@@ -69,12 +69,46 @@ This project demonstrates an end-to-end LLM deployment with a focus on:
 - **Grafana**: `http://localhost:3000`
 - **Prometheus**: `http://localhost:9090`
 
-## Deployment
-- Provision a G2 VM on Google Compute Engine (enable GPUs, pick region/zone with capacity, and choose a suitable NVIDIA GPU).
-- Ensure the host has a public IP and ports 8000, 8001, 7861, 8080, 3000, 9090 are allowed by your firewall.
-- Create a DuckDNS subdomain and map it to your server IP (example: `lora-llm-serving.duckdns.org`).
-- Update the DuckDNS record whenever your public IP changes (use the DuckDNS client or a cron job).
-- Access the stack via DNS, for example: `http://lora-llm-serving.duckdns.org:7861` for the Gradio UI.
+## Deployment (HTTPS with one DuckDNS subdomain)
+
+DuckDNS allows only one subdomain. Use a single domain with path-based routing:
+
+- **Backend API**: `https://lora-llm-serving.duckdns.org/api/v1`
+- **Gradio UI**: `https://lora-llm-serving.duckdns.org/app`
+- **Open WebUI**: `https://lora-llm-serving.duckdns.org/webui`
+
+Steps:
+
+1. Provision a G2 VM on Google Compute Engine (enable GPUs, pick region/zone with capacity, and choose a suitable NVIDIA GPU).
+2. Ensure the host has a public IP and ports 80 and 443 are allowed by your firewall.
+3. Create a DuckDNS subdomain and map it to your server IP (example: `lora-llm-serving.duckdns.org`).
+4. Update the DuckDNS record whenever your public IP changes (use the DuckDNS client or a cron job).
+5. Configure Caddy with path-based routing:
+
+    ```caddy
+    lora-llm-serving.duckdns.org {
+       handle_path /api/* {
+          reverse_proxy localhost:8001
+       }
+
+       handle_path /app/* {
+          reverse_proxy localhost:7861
+       }
+
+       handle_path /webui/* {
+          reverse_proxy localhost:8080
+       }
+    }
+    ```
+
+6. Update frontend env vars for the backend URL and Gradio root path:
+
+    ```bash
+    BACKEND_API_URL=https://lora-llm-serving.duckdns.org/api/v1
+    GRADIO_ROOT_PATH=/app
+    ```
+
+Note: Open WebUI may not support a subpath. If `/webui` fails, use a DNS provider that supports subdomains or keep Open WebUI on its own HTTPS port.
 
 ## Benchmark
 
