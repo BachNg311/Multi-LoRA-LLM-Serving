@@ -89,8 +89,11 @@ jobs:
       - name: Compile helper script
         run: python -m compileall download_adapters.py
 
+      - name: Prepare env file
+        run: cp .env.example .env
+
       - name: Validate compose file
-        run: docker compose -f docker-compose.yaml config
+        run: docker compose --env-file .env.example -f docker-compose.yaml config
 
   monitor:
     name: Monitor - Check
