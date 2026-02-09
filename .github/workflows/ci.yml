@@ -71,6 +71,40 @@ jobs:
       - name: Compile sources
         run: python -m compileall app.py
 
+  vllm-api:
+    name: vLLM API - Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vllm_api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile helper script
+        run: python -m compileall download_adapters.py
+
+      - name: Validate compose file
+        run: docker compose -f docker-compose.yaml config
+
+  monitor:
+    name: Monitor - Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: monitor
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate compose file
+        run: docker compose -f docker-compose.yaml config
+
   tests:
     name: Pytest
     runs-on: ubuntu-latest
